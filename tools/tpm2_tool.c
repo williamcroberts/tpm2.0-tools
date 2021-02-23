@@ -17,6 +17,7 @@
 #include "tpm2_options.h"
 #include "tpm2_tool.h"
 #include "tpm2_tool_output.h"
+#include "tpm2_yaml_util.h"
 
 static void esys_teardown(ESYS_CONTEXT **esys_context) {
 
@@ -123,7 +124,6 @@ static const tpm2_tool *tpm2_tool_lookup(int *argc, char ***argv)
     return NULL;
 }
 
-
 /*
  * This program is a template for TPM2 tools that use the SAPI. It does
  * nothing more than parsing command line options that allow the caller to
@@ -132,12 +132,14 @@ static const tpm2_tool *tpm2_tool_lookup(int *argc, char ***argv)
 static struct tool_context {
     ESYS_CONTEXT *ectx;
     tpm2_options *tool_opts;
+    tpm2_yaml_doc doc;
 } ctx;
 
 static void main_onexit(void) {
 
     teardown_full(&ctx.ectx);
     tpm2_options_free(ctx.tool_opts);
+    yaml_document_delete(&ctx.doc.yaml);
 }
 
 int main(int argc, char **argv) {
@@ -230,6 +232,26 @@ int main(int argc, char **argv) {
         tpm2_errata_init(ctx.ectx);
     }
 
+    if (!flags.quiet) {
+        int rc = yaml_document_initialize(&ctx.doc.yaml,
+                NULL, /* version directive */
+                NULL, /* directive start */
+                NULL, /* directive end */
+                0, /* start implicit */
+                0); /* end implicit */
+        if (!rc) {
+            LOG_ERR("doc init failed");
+            exit(tool_rc_general_error);
+        }
+
+        int root = yaml_document_add_mapping(&ctx.doc.yaml, NULL,
+                YAML_ANY_MAPPING_STYLE);
+        if (!root) {
+            LOG_ERR("root add failed");
+            exit(tool_rc_general_error);
+        }
+    }
+
     /*
      * Load the openssl error strings and algorithms
      * so library routines work as expected.
@@ -242,7 +264,7 @@ int main(int argc, char **argv) {
      * Call the specific tool, all tools implement this function instead of
      * 'main'.
      */
-    ret = tool->onrun(ctx.ectx, flags);
+    ret = tool->onrun(ctx.ectx, flags, !flags.quiet ? &ctx.doc : NULL);
     if (tool->onstop) {
         tool_rc tmp_rc = tool->onstop(ctx.ectx);
         /* if onrun() passed, the error code should come from onstop() */
@@ -250,7 +272,7 @@ int main(int argc, char **argv) {
     }
     switch (ret) {
     case tool_rc_success:
-        /* nothing to do here */
+        yaml_dump_doc(&ctx.doc.yaml);
         break;
     case tool_rc_option_error:
         tpm2_print_usage(argv[0], ctx.tool_opts);

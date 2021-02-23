@@ -61,6 +61,7 @@ PKG_CHECK_MODULES([TSS2_SYS], [tss2-sys])
 PKG_CHECK_MODULES([CRYPTO], [libcrypto >= 1.0.2g])
 PKG_CHECK_MODULES([CURL], [libcurl])
 PKG_CHECK_MODULES([UUID], [uuid])
+PKG_CHECK_MODULES([YAML], [yaml-0.1])
 
 # backwards compat with older pkg-config
 # - pull in AC_DEFUN from pkg.m4

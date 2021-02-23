@@ -781,7 +781,7 @@ static void yaml_eventlog_pcrs(tpm2_eventlog_context *ctx) {
     }
 }
 
-bool yaml_eventlog(UINT8 const *eventlog, size_t size, uint32_t eventlog_version) {
+bool yaml_eventlog(UINT8 const *eventlog, size_t size, tpm2_yaml_doc *doc, uint32_t eventlog_version) {
 
     if (eventlog_version < MIN_EVLOG_YAML_VERSION || 
         eventlog_version > MAX_EVLOG_YAML_VERSION) {
@@ -802,6 +802,21 @@ bool yaml_eventlog(UINT8 const *eventlog, size_t size, uint32_t eventlog_version
 
     tpm2_tool_output("---\n");
     tpm2_tool_output("version: %u\n", eventlog_version);
+
+    int rv = tpm2_yaml_util_add_map_to_root_uint32_t(doc, "version", 'u', eventlog_version);
+    if (!rv) {
+    	return false;
+    }
+
+    /*
+     * XXX here you would start a sequence via yaml_document_add_sequence
+     *
+     * Then parse_eventlog could create N structured events and add them
+     * via yaml_document_append_sequence_item.
+     *
+     * Then you would add it back to the root using yaml_document_append_mapping_pair, giving it the
+     * key "events", and the int to the sequence.
+     */
     tpm2_tool_output("events:\n");
     bool rc = parse_eventlog(&ctx, eventlog, size);
     if (!rc) {

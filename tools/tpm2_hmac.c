@@ -287,7 +287,7 @@ static tool_rc readpub(ESYS_CONTEXT *ectx, ESYS_TR handle,
     return tpm2_readpublic(ectx, handle, public, NULL, NULL);
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(flags);
 

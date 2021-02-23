@@ -62,7 +62,7 @@ static bool tpm2_tool_onstart(tpm2_options **opts) {
     return *opts != NULL;
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(flags);
     UNUSED(ectx);
@@ -97,7 +97,7 @@ static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
         goto out;
     }
 
-    ret = yaml_eventlog(eventlog, size_tmp, eventlog_version);
+    ret = yaml_eventlog(eventlog, size_tmp, doc, eventlog_version);
     if (!ret) {
         LOG_ERR("failed to parse tpm2 eventlog");
         rc = tool_rc_general_error;

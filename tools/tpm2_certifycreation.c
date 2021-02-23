@@ -270,7 +270,7 @@ static tool_rc process_certifycreation_output(TPMT_SIGNATURE *signature,
     return tool_rc_success;
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(flags);
 

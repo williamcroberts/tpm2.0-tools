@@ -224,7 +224,7 @@ static bool set_key_algorithm(TPMI_ALG_PUBLIC alg, TPMT_SYM_DEF_OBJECT * obj) {
     return result;
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
     UNUSED(flags);
 
     tool_rc rc = tool_rc_general_error;

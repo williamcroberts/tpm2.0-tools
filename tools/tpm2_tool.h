@@ -6,9 +6,12 @@
 #include <tss2/tss2_esys.h>
 #include <stdbool.h>
 
+#include <yaml.h>
+
 #include "tool_rc.h"
 #include "tpm2_options.h"
 #include "tpm2_tool_output.h"
+#include "tpm2_yaml_util.h"
 
 /**
  * An optional interface for tools to specify what options they support.
@@ -33,7 +36,7 @@ typedef bool (*tpm2_tool_onstart_t)(tpm2_options **opts);
  * @return
  *  A tool_rc indicating status.
  */
-typedef tool_rc (*tpm2_tool_onrun_t)(ESYS_CONTEXT *ectx, tpm2_option_flags flags);
+typedef tool_rc (*tpm2_tool_onrun_t)(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *yaml);
 
 /**
  * Called after tpm2_tool_onrun() is invoked. ESAPI context is still valid during this call.

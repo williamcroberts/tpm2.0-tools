@@ -7,6 +7,7 @@
 
 #include "efi_event.h"
 #include "tpm2_eventlog.h"
+#include "tpm2_yaml_util.h"
 
 #define MIN_EVLOG_YAML_VERSION 1
 #define MAX_EVLOG_YAML_VERSION 2
@@ -22,6 +23,6 @@ bool yaml_event2hdr_callback(TCG_EVENT_HEADER2 const *event_hdr, size_t size,
 bool yaml_event2data_callback(TCG_EVENT2 const *event, UINT32 type, void *data,
                               uint32_t eventlog_version);
 
-bool yaml_eventlog(UINT8 const *eventlog, size_t size, uint32_t eventlog_version);
+bool yaml_eventlog(UINT8 const *eventlog, size_t size, tpm2_yaml_doc *doc, uint32_t eventlog_version);
 
 #endif

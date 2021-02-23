@@ -320,7 +320,7 @@ static void set_default_hierarchy(void) {
     ctx.objdata.in.hierarchy = TPM2_RH_ENDORSEMENT;
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(flags);
 

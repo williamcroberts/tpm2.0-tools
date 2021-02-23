@@ -72,7 +72,7 @@ static bool tpm2_tool_onstart(tpm2_options **opts) {
     return *opts != NULL;
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(flags);
 

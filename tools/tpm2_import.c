@@ -664,7 +664,7 @@ static tool_rc tpm_import(ESYS_CONTEXT *ectx) {
 
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
     UNUSED(flags);
 
     tool_rc rc = check_options();

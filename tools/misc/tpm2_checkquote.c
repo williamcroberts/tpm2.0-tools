@@ -19,6 +19,7 @@
 #include "tpm2_systemdeps.h"
 #include "tpm2_tool.h"
 #include "tpm2_eventlog.h"
+#include "tpm2_yaml_util.h"
 
 typedef struct tpm2_verifysig_ctx tpm2_verifysig_ctx;
 struct tpm2_verifysig_ctx {
@@ -54,7 +55,7 @@ static tpm2_verifysig_ctx ctx = {
         .pcr_hash = TPM2B_TYPE_INIT(TPM2B_DIGEST, buffer),
 };
 
-static bool verify(void) {
+static bool verify(tpm2_yaml_doc *doc) {
 
     bool result = false;
 
@@ -89,10 +90,10 @@ static bool verify(void) {
         goto err;
     }
 
-    /* TODO dump actual signature */
-    tpm2_tool_output("sig: ");
-    tpm2_util_hexdump(ctx.signature.buffer, ctx.signature.size);
-    tpm2_tool_output("\n");
+    rc = tpm2_yaml_util_add_map_to_root_bindata (doc, "sig", ctx.signature.buffer, ctx.signature.size);
+    if (!rc) {
+    	goto err;
+    }
 
     // Verify the signature matches message digest
 
@@ -623,7 +624,7 @@ static bool tpm2_tool_onstart(tpm2_options **opts) {
     return *opts != NULL;
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(ectx);
     UNUSED(flags);
@@ -634,7 +635,7 @@ static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
         return rc;
     }
 
-    bool res = verify();
+    bool res = verify(doc);
     if (!res) {
         LOG_ERR("Verify signature failed!");
         return tool_rc_general_error;

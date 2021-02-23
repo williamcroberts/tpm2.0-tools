@@ -169,7 +169,7 @@ static inline bool object_needs_parent(tpm2_loaded_object *obj) {
     return (h == TPM2_HR_TRANSIENT) || (h == TPM2_HR_PERSISTENT);
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *ectx, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(flags);
 

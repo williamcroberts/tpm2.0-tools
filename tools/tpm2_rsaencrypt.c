@@ -122,7 +122,7 @@ static tool_rc init(ESYS_CONTEXT *context) {
             TPM2_HANDLE_ALL_W_NV);
 }
 
-static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *context, tpm2_option_flags flags) {
+static tool_rc tpm2_tool_onrun(ESYS_CONTEXT *context, tpm2_option_flags flags, tpm2_yaml_doc *doc) {
 
     UNUSED(flags);
 
