@@ -177,6 +177,21 @@ tool_rc tpm2_alg_util_public_init(char *alg_details, char *name_halg, char *attr
         char *auth_policy,  TPMA_OBJECT def_attrs, TPM2B_PUBLIC *public);
 
 /**
+ * Like tpm2_alg_util_public_init, but takes the raw policy hash instead of a path to
+ * a policy hash file.
+ * @param alg_details
+ * @param name_halg
+ * @param attrs
+ * @param auth_policy
+ * @param def_attrs
+ * @param public
+ * @return
+ */
+tool_rc tpm2_alg_util_public_init2(char *alg_details, char *name_halg, char *attrs,
+        TPM2B_DIGEST *auth_policy,  TPMA_OBJECT def_attrs, TPM2B_PUBLIC *public);
+
+
+/**
  * Returns an ECC curve as a friendly name.
  * @param curve_id
  *  The curve to look up a friendly string for.

@@ -12,6 +12,7 @@
 #include "tpm2_alg_util.h"
 #include "tpm2_auth_util.h"
 #include "tpm2_options.h"
+#include "tpm2_policy.h"
 
 typedef struct tpm_create_ctx tpm_create_ctx;
 #define MAX_AUX_SESSIONS 2
@@ -170,7 +171,7 @@ static tool_rc create(ESYS_CONTEXT *ectx) {
     |TPMA_OBJECT_FIXEDPARENT|TPMA_OBJECT_SENSITIVEDATAORIGIN \
     |TPMA_OBJECT_USERWITHAUTH
 
-static void setup_attributes(TPMA_OBJECT *attrs) {
+static void setup_attributes(TPMA_OBJECT *attrs, bool is_password_session) {
 
     if (ctx.object.is_sealing_input_specified && !ctx.object.attrs) {
         *attrs &= ~TPMA_OBJECT_SIGN_ENCRYPT;
@@ -183,7 +184,7 @@ static void setup_attributes(TPMA_OBJECT *attrs) {
         *attrs &= ~TPMA_OBJECT_DECRYPT;
     }
 
-    if (!ctx.object.attrs && ctx.object.policy && !ctx.object.auth_str) {
+    if (!ctx.object.attrs && !is_password_session) {
         *attrs &= ~TPMA_OBJECT_USERWITHAUTH;
     }
 }
@@ -331,14 +332,36 @@ static tool_rc process_inputs(ESYS_CONTEXT *ectx) {
      * 1.a Add the new-auth values to be set for the object.
      */
     tpm2_session *tmp;
-    tool_rc rc = tpm2_auth_util_from_optarg(NULL, ctx.object.auth_str, &tmp,
+    tool_rc rc = tpm2_auth_util_from_optarg(ectx, ctx.object.auth_str, &tmp,
         true);
     if (rc != tool_rc_success) {
         LOG_ERR("Invalid key authorization");
         return rc;
     }
-    TPM2B_AUTH const *auth = tpm2_session_get_auth_value(tmp);
-    ctx.object.sensitive.sensitive.userAuth = *auth;
+
+    /* Setup attributes */
+    TPMA_OBJECT attrs = DEFAULT_ATTRS;
+    TPM2B_DIGEST auth_policy = { 0 };
+    bool is_password_session = tpm2_session_is_HMAC(tmp);
+    setup_attributes(&attrs, is_password_session);
+    if (is_password_session) {
+        ctx.object.sensitive.sensitive.userAuth =
+                *tpm2_session_get_auth_value(tmp);
+    } else {
+        if (ctx.object.policy) {
+            LOG_ERR("Cannot specify policy -L/--policy and a pcr format authorization via -p");
+            return tool_rc_option_error;
+        }
+        TPM2B_DIGEST *tmp_auth_policy = NULL;
+        tool_rc rc = tpm2_policy_get_digest(ectx, tmp, &tmp_auth_policy);
+        if (rc != tool_rc_success) {
+            LOG_ERR("Could not get policy digest");
+            return rc;
+        }
+        auth_policy = *tmp_auth_policy;
+        free(tmp_auth_policy);
+        tmp_auth_policy = NULL;
+    }
     tpm2_session_close(&tmp);
 
     /*
@@ -363,18 +386,20 @@ static tool_rc process_inputs(ESYS_CONTEXT *ectx) {
      * 3. Command specific initializations
      */
 
-    /* Setup attributes */
-    TPMA_OBJECT attrs = DEFAULT_ATTRS;
-    setup_attributes(&attrs);
 
     /* Initialize object */
-    rc = tpm2_alg_util_public_init(ctx.object.alg, ctx.object.name_alg,
-        ctx.object.attrs, ctx.object.policy, attrs, &ctx.object.in_public);
+    if (ctx.object.policy) {
+        rc = tpm2_alg_util_public_init(ctx.object.alg, ctx.object.name_alg,
+            ctx.object.attrs, ctx.object.policy, attrs, &ctx.object.in_public);
+    } else {
+        rc = tpm2_alg_util_public_init2(ctx.object.alg, ctx.object.name_alg,
+            ctx.object.attrs, &auth_policy, attrs, &ctx.object.in_public);
+    }
     if (rc != tool_rc_success) {
         return rc;
     }
 
-    /* Check object validitity */
+    /* Check object validity */
     if (ctx.object.is_sealing_input_specified &&
         ctx.object.in_public.publicArea.type != TPM2_ALG_KEYEDHASH) {
         LOG_ERR("Only TPM2_ALG_KEYEDHASH algorithm is allowed when sealing data");

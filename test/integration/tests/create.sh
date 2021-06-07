@@ -9,7 +9,7 @@ cleanup() {
     rm -f context.out
   fi
 
-  rm -f key*.ctx out.yaml
+  rm -f key*.ctx out.yaml foo.sig
 
   if [ $(ina "$@" "no-shut-down") -ne 0 ]; then
     shut_down
@@ -118,5 +118,10 @@ tpm2 flushcontext enc_session.ctx
 # Test public key output
 tpm2_create -C primary.ctx -u obj.pub -r obj.priv -f pem -o obj.pem
 openssl rsa -noout -text -inform PEM -in obj.pem -pubin
+
+# Test that key creation with pcr works
+tpm2 create -C primary.ctx -p'pcr:sha256:1,2,3' -u key.pub -r key.priv
+tpm2 load -C primary.ctx -u key.pub -r key.priv -c key.ctx
+echo 'foo' | tpm2 sign -c key.ctx -p'pcr:sha256:1,2,3' -o foo.sig
 
 exit 0

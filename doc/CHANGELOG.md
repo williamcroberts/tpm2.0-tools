@@ -9,8 +9,11 @@
         session for auditing and or encryption/decryption of the parameters.
   * tpm2_createprimary: Support outputing public key at creation time in various
     public key formats.
-  * tpm2_create: Support outputing public key at creation time in various
-    public key formats.
+  * tpm2_create:
+      - Support outputing public key at creation time in various public key
+        formats.
+      - Support specifying PCR policy at creation time via pcr password 
+        specifiers.
   * tpm2_print: Support outputing public key in various public key formats over
     the default YAML output. Supports taking `-u` output from `tpm2_create` and
     converting it to a PEM or DER file format.

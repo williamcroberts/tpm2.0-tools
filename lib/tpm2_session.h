@@ -134,6 +134,17 @@ ESYS_TR tpm2_session_get_handle(tpm2_session *session);
 TPM2_SE tpm2_session_get_type(tpm2_session *session);
 
 /**
+ * True if the session is HMAC, false otherwise.
+ * @param session
+ *  The session to query.
+ * @return
+ *  True if it is a password session, false otherwise.
+ */
+static inline bool tpm2_session_is_HMAC(tpm2_session *session) {
+    return tpm2_session_get_type(session) == TPM2_SE_HMAC;
+}
+
+/**
  * True if a session is of type TPM2_SE_TRIAL
  * @param session
  *  The session to check the type of.

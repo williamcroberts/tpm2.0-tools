@@ -936,21 +936,12 @@ tool_rc tpm2_alg_util_get_signature_scheme(ESYS_CONTEXT *ectx,
     return tool_rc_success;
 }
 
-tool_rc tpm2_alg_util_public_init(char *alg_details, char *name_halg, char *attrs,
-        char *auth_policy,  TPMA_OBJECT def_attrs, TPM2B_PUBLIC *public) {
-
-    memset(public, 0, sizeof(*public));
+static tool_rc _tpm2_alg_util_public_init(char *alg_details, char *name_halg, char *attrs,
+        TPM2B_DIGEST *auth_policy,  TPMA_OBJECT def_attrs, TPM2B_PUBLIC *public) {
 
     /* load a policy from a path if present */
     if (auth_policy) {
-    public->publicArea.authPolicy.size =
-                sizeof(public->publicArea.authPolicy.buffer);
-        bool res = files_load_bytes_from_path(auth_policy,
-            public->publicArea.authPolicy.buffer,
-                &public->publicArea.authPolicy.size);
-        if (!res) {
-            return tool_rc_general_error;
-        }
+        public->publicArea.authPolicy = *auth_policy;
     }
 
     /* Set the hashing algorithm used for object name */
@@ -1001,6 +992,38 @@ tool_rc tpm2_alg_util_public_init(char *alg_details, char *name_halg, char *attr
 
     return tool_rc_success;
 }
+
+tool_rc tpm2_alg_util_public_init2(char *alg_details, char *name_halg, char *attrs,
+        TPM2B_DIGEST *auth_policy,  TPMA_OBJECT def_attrs, TPM2B_PUBLIC *public) {
+
+    memset(public, 0, sizeof(*public));
+
+    return _tpm2_alg_util_public_init(alg_details, name_halg, attrs, auth_policy,
+            def_attrs, public);
+}
+
+tool_rc tpm2_alg_util_public_init(char *alg_details, char *name_halg, char *attrs,
+        char *auth_policy_path,  TPMA_OBJECT def_attrs, TPM2B_PUBLIC *public) {
+
+    memset(public, 0, sizeof(*public));
+
+    /* load a policy from a path if present */
+    TPM2B_DIGEST auth_policy = { 0 };
+    if (auth_policy_path) {
+        auth_policy.size =
+                sizeof(public->publicArea.authPolicy.buffer);
+        bool res = files_load_bytes_from_path(auth_policy_path,
+            auth_policy.buffer,
+                &auth_policy.size);
+        if (!res) {
+            return tool_rc_general_error;
+        }
+    }
+
+    return _tpm2_alg_util_public_init(alg_details, name_halg, attrs, &auth_policy,
+            def_attrs, public);
+}
+
 
 const char *tpm2_alg_util_ecc_to_str(TPM2_ECC_CURVE curve_id) {
 
